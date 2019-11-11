@@ -1,0 +1,313 @@
+% !TeX spellcheck = en_US
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,hmargin=3.4cm,vmargin=2.4cm]{geometry}
+\usepackage{mathtools}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amssymb,dsfont,stmaryrd}
+\usepackage{algorithm2e}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{titlesec}
+
+\hypersetup{
+	colorlinks,
+	urlcolor=NavyBlue
+}
+
+%%% Math macros %%%
+
+\newcommand\RR{\mathbb{R}}
+\newcommand\CC{\mathbb{C}}
+\newcommand\ZZ{\mathbb{Z}}
+\newcommand\NN{\mathbb{N}}
+\newcommand\TT{\mathbb{T}}
+\DeclarePairedDelimiter{\intinterv}{\llbracket}{\rrbracket}
+
+\renewcommand{\epsilon}{\varepsilon}
+
+\newcommand{\suchthat}{\mathrm{s.t.}}
+
+\DeclareMathOperator*{\argmin}{\mathrm{argmin}}
+\DeclareMathOperator*{\argmax}{\mathrm{argmax}}
+\DeclareMathOperator{\diag}{\mathrm{diag}}
+\DeclareMathOperator{\sgn}{\mathrm{sgn}}
+\DeclareMathOperator{\trace}{\mathrm{Tr}}
+
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calP}{\mathcal{M}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calC}{\mathcal{C}}
+
+
+%%% Section titling setup %%%
+
+\titleformat*{\section}{\LARGE\bfseries\sffamily}
+\titleformat*{\subsection}{\Large\bfseries\sffamily}
+
+\titleformat{\paragraph}[runin]{\sffamily\bfseries}{}{}{}[.]
+
+
+%%% Document title %%%
+
+\title{
+	MVA -- Probabilistic Graphical Models\\
+	{\color{NavyBlue}\sffamily Homework 1}
+}
+
+\author{
+	Wilson \textsc{Jallet}\thanks{\url{wilson.jallet@polytechnique.org}}}
+
+\begin{document}
+
+\maketitle
+
+\section{Learning in discrete graphical models}
+
+
+We suppose that $z \sim \calM(\pi, 1)$ and, for every $m\in\intinterv{1..M}$, $x | z=m \sim \calM(\theta_m, 1)$ where $\pi \in \Delta_{M-1} = \{ p \in\RR_+^M : \sum_{m=1}^{M} p_m = 1 \}$ and for every $m \in \intinterv{1..M}$, $\theta_m \in \Delta_{K-1}$.
+
+Given data $\calX = {((x_n, z_n))}_{1\leq n\leq N}$, its likelihood under parameters $(\pi, \theta)$ is
+\begin{equation}
+\ell(\pi, \theta; \calX) = 
+\prod_{n=1}^N p(x_n|z_n) p(z_n) =
+\prod_{n=1}^N \theta_{z_n,x_n} \pi_{z_n}
+\end{equation}
+And log-likelihood
+\begin{equation}
+L(\pi, \theta; \calX) =
+\sum_{n=1}^N \log\theta_{z_n,x_n} + \log \pi_{z_n}
+\end{equation}
+
+Computing the maximum likelihood estimate (MLE) is equivalent to the problem
+\begin{equation}
+\begin{aligned}
+&\min_{\pi,\theta}~ -L(\pi,\theta;\calX) \\
+\suchthat \ &\sum_{m=1}^M \pi_m = 1 \\
+			&\sum_{k=1}^K \theta_{mk} = 1\ \text{for } m\in\intinterv{1..M}
+\end{aligned}
+\end{equation}
+This is a convex optimization problem.
+
+We introduce the Lagrangian
+\[
+	\calL(\pi, \theta, \nu, \xi) =
+	-L(\pi,\theta;\calX) + \nu (\pi\mathds{1} - 1) + \sum_{m=1}^M \xi_m (\theta_m\mathds{1}-1), \quad
+	\nu \in \RR, \ \xi\in\RR^M
+\]
+The partial derivatives are given by
+\begin{align*}
+	\frac{\partial\calL}{\partial \pi_m} &=
+	-\frac{
+		\sum_{n=1}^N \mathds{1}_{\{z_n=m\}}
+	}{\pi_m}
+	+ \nu \\
+	\frac{\partial\calL}{\partial \theta_{mk}} &=
+	-\frac{
+		\sum_{n=1}^N \mathds{1}_{\{z_n=m,x_n=k\}}
+	}{\theta_{mk}}
+	+ \xi_m
+\end{align*}
+with the convention that the first terms are $0$ if the set $\mathcal{A}_m = \{n\in\intinterv{1..n}: z_n = m\}$ (resp. $\mathcal{B}_{m,k} = \{n\in\intinterv{1..n}: z_n=m,\; x_n=k\}$) is empty: then $\pi_m$ (resp. $\theta_{mk}$) does not appear in the log-likelihood.
+
+The Euler optimality conditions lead to
+\begin{subequations}
+\begin{align}
+	\nu\pi^*_m &= 
+	\sum_{n=1}^N \mathds{1}_{\{z_n=m\}} = |\mathcal{A}_m| \\
+	\xi_m\theta^*_{mk} &= \sum_{n=1}^N \mathds{1}_{\{z_n=m,x_n=k\}} = |\mathcal{B}_{m,k}|
+\end{align}
+\end{subequations}
+which reduces to $0=0$ for indices $i \in \mathcal{A}_m$ or $n\in\mathcal{B}_{m,k}$.
+Primal feasibility then implies $\nu = N$ and $\xi_m = \sum_{n=1}^N \mathds{1}_{\{z_n=m\}} = |\mathcal{A}_m|$.
+
+\paragraph{Conclusion} Then, the MLE for the model is given by
+\begin{equation}
+{\color{Blue}
+\begin{aligned}
+\pi^*_m &= \frac{|\mathcal{A}_m|}{n} \\
+\theta^*_{m,k} &= \frac{
+	|\mathcal{B}_{m,k}|
+}{
+	|\mathcal{A}_m|
+}
+\end{aligned}}
+\end{equation}
+which is the intuitive solution: the empirical probabilities of each class.
+
+
+
+\section{Linear classification}
+
+
+\subsection{Generative model (LDA)}
+
+\paragraph{Maximum likelihood estimator} Denoting $p = (1-\pi, \pi)$, the log-likelihood of the data under the parameters $(p, \mu, \Sigma)$ is
+\begin{equation}
+L(p, \mu, \Sigma) =
+-\sum_{n=1}^N
+\frac{1}{2}(x_n - \mu_{y_n})^T\Sigma^{-1}(x_n - \mu_{y_n}) - \frac{n}{2}\log|\Sigma|
++ \sum_{n=1}^N \log p_{y_n}
+\end{equation}
+We introduce the precision matrix $W \coloneqq \Sigma^{-1}$: the MLE problem is equivalent to the convex optimization problem
+\begin{equation}
+\begin{aligned}
+	&\min_{p,\mu,W}~
+	\sum_{n=1}^N \left(
+	\frac{1}{2}(x_n-\mu_{y_n})^TW(x_n-\mu_{y_n}) - \log p_{y_n}
+	\right)
+	- \frac{n}{2}\log|W| \\
+	\suchthat\ & p_0 + p_1 = 1 \\
+	&W \succ 0
+\end{aligned}
+\end{equation}
+We again introduce the Lagrangian
+\[
+	\calL(p, \mu, W, \nu) =
+	-L(p, \mu, W) + \nu(p_0 + p_1 - 1)
+\]
+and denote the classes $\mathcal{C}_i = \{n: y_n = i\}$. The partial derivatives are
+\begin{equation}
+\begin{aligned}
+\frac{\partial\calL}{\partial p_i} &= -\frac{|\calC_i|}{p_i} + \nu  \\
+\nabla_{\mu_i}\calL &= \sum_{n\in\calC_i} W(\mu_i - x_n)
+\end{aligned}
+\end{equation}
+The Euler optimality conditions for $\pi$ and primal feasibility lead to, as before,
+\begin{equation}
+{\color{Blue}
+	p^*_i = \frac{|\calC_i|}{N}
+	\quad \text{for } i = 0,1
+}
+\end{equation}
+(so the Bernoulli law parameter is $\pi^* = p^*_1 = |\calC_1|/n$). The Gaussian means are given by the class barycenters:
+\begin{equation}
+{\color{Blue}
+	\mu^*_i = \frac{1}{|\calC_i|}\sum_{n\in\calC_i} x_n
+	\quad \text{for } i = 0,1
+}
+\end{equation}
+Recalling that $\nabla_M \log|M| = M^{-1}$, we have the Euler condition for $W$
+\[
+	\nabla_W\calL =
+	\frac{1}{2}\sum_n (x_n-\mu_{y_n})(x_n-\mu_{y_n})^T - \frac{n}{2}W^{-1}
+	= 0
+\]
+so at the optimum the precision matrix is the empirical covariance
+\begin{equation}
+{\color{Blue}
+	\Sigma^* = (W^*)^{-1} =
+	\frac{1}{n} \sum_{n=1}^N (x_n - \mu^*_{y_n})(x_n - \mu^*_{y_n})^T
+}
+\end{equation}
+
+\paragraph{Conditional distribution} The posterior distribution of the class label $y$ given $x$ is
+\[
+p(y=1|x) =
+\frac{
+	\pi e^{-\frac{1}{2}(x-\mu_1)^T\Sigma^{-1}(x-\mu_1)}
+}{
+	\pi e^{-\frac{1}{2}(x-\mu_1)^T\Sigma^{-1}(x-\mu_1)} +
+	(1-\pi) e^{-\frac{1}{2}(x-\mu_0)^T\Sigma^{-1}(x-\mu_0)}
+}
+\]
+In the logistic regression model, the posterior distribution is given by
+\[
+	p(y=1|x) =
+	\frac{1}{1 + e^{-f(x)}}
+\]
+
+
+\paragraph{Decision boundary} Setting $p(y=1|x) = 1/2$, we have that $x$ satisfies
+\begin{equation}\label{eq:LDADecisionBoundaryEqn}
+	\log\left(\frac{\pi}{1-\pi}\right) =
+	(\mu_1 - \mu_0)^T\Sigma^{-1}\left(x - \frac{\mu_0+\mu_1}{2}\right)
+\end{equation}
+This is the equation of a hyperplane with normal vector $a = \Sigma^{-1}(\mu_1 - \mu_0)$. Finding a support vector $w$ to a 2D line of normal vector $a$ can be done by start with $e$ and define $w\coloneqq e - \langle \frac{a}{\|a\|}, e\rangle \frac{a}{\|a\|}$. \autoref{fig:LDAboundaryPlot} shows the contour plot of the posterior probability $p(y=1|x)$, along with the decision boundary.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.49\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-decisionbound.pdf}
+	\caption{Point cloud in $\RR^2$, and decision boundary \eqref{eq:LDADecisionBoundaryEqn}}
+	\label{fig:LDAboundaryPlot}
+	\end{subfigure}
+	\begin{subfigure}[t]{.49\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-mixture-probagap.pdf}
+	\caption{Mixture of Gaussians underlying the LDA.}
+	\end{subfigure}
+	\caption{Linear discriminant analysis for dataset \texttt{trainA}.}\label{fig:LDAplot}
+\end{figure}
+
+
+
+\subsection{Logistic regression}
+
+Introduce the logistic function
+\[
+	\sigma(x) = \frac{1}{1 + e^{-x}}
+\]
+which has property $\sigma'(x) = \sigma(x)(1-\sigma(x))$.
+
+Denoting $\epsilon_n = 2y_n - 1 \in \{-1,1\}$ and $\bar{x}_n = (1, x_n)$, the log-likelihood is given by
+\begin{equation}
+L(w) = \sum_{n=1}^N \log\sigma(\epsilon_n w^T\bar{x}_n)
+\end{equation}
+In this formulation, the vector $w\in\RR^3$ also holds the bias as $w_0$. To compute the MLE $w^* = \argmax_{w} L(w)$, we will use a Newton method.
+
+The gradient of $L$ is
+\begin{equation}
+\nabla_w L(w) =
+\sum_{n=1}^N \left(1 - \sigma(\epsilon_n w^T\bar{x}_n)\right) \epsilon_n \bar{x}_n
+\end{equation}
+and its hessian matrix is
+\begin{equation}
+\nabla_w^2 L(w) =
+\sum_{n=1}^N (\sigma(\epsilon_nw^T\bar{x}_n)-1)\sigma(\epsilon_nw^T\bar{x}_n) \bar{x}_n \bar{x}_n^T
+\end{equation}
+
+We obtain the results in \autoref{fig:LogisticReg}, with weights
+\[
+	\begin{bmatrix}
+	b \\ w
+	\end{bmatrix} =
+	\begin{bmatrix}
+	198.20194308 \\ 8.86368223\\ -34.28264052
+	\end{bmatrix}
+\]
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{./images/logisticreg-result.pdf}
+	\caption{Logistic regression on the dataset \texttt{trainA}. The decision boundary is apparent, and the transition from one class to another is sharp.}\label{fig:LogisticReg}
+\end{figure}
+
+
+\subsection{Linear regression}
+
+
+
+
+
+
+
+
+
+
+\subsection{Application}
+
+
+
+\subsection{QDA model}
+
+
+
+
+
+\end{document}
+
+

@@ -1,0 +1,5 @@
+homework1/homework1.pdf filter=lfs diff=lfs merge=lfs -text
+homework1/images/lda-pointcloud-decisionbound.pdf filter=lfs diff=lfs merge=lfs -text
+homework1/images/lda-pointcloud-mixture-probagap.pdf filter=lfs diff=lfs merge=lfs -text
+homework1/images/logistic-newton-convergence.pdf filter=lfs diff=lfs merge=lfs -text
+homework1/images/logisticreg-result.pdf filter=lfs diff=lfs merge=lfs -text
