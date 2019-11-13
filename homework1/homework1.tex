@@ -6,8 +6,9 @@
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amssymb,dsfont,stmaryrd}
 \usepackage{algorithm2e}
-\usepackage{hyperref}
+\usepackage{hyperref,cleveref}
 \usepackage{graphicx}
+\usepackage{booktabs}
 \usepackage{subcaption}
 \usepackage{titlesec}
 
@@ -86,8 +87,8 @@ Computing the maximum likelihood estimate (MLE) is equivalent to the problem
 \begin{equation}
 \begin{aligned}
 &\min_{\pi,\theta}~ -L(\pi,\theta;\calX) \\
-\suchthat \ &\sum_{m=1}^M \pi_m = 1 \\
-			&\sum_{k=1}^K \theta_{mk} = 1\ \text{for } m\in\intinterv{1..M}
+\suchthat \ &\sum_{m=1}^M \pi_m = 1 \text{ and }
+			\sum_{k=1}^K \theta_{mk} = 1\ \text{for } m\in\intinterv{1..M}
 \end{aligned}
 \end{equation}
 This is a convex optimization problem.
@@ -177,14 +178,19 @@ and denote the classes $\mathcal{C}_i = \{n: y_n = i\}$. The partial derivatives
 \end{aligned}
 \end{equation}
 The Euler optimality conditions for $\pi$ and primal feasibility lead to, as before,
-\begin{equation}
+\begin{equation}\label{eq:LDAclassProbas}
 {\color{Blue}
 	p^*_i = \frac{|\calC_i|}{N}
 	\quad \text{for } i = 0,1
 }
 \end{equation}
-(so the Bernoulli law parameter is $\pi^* = p^*_1 = |\calC_1|/n$). The Gaussian means are given by the class barycenters:
-\begin{equation}
+so the Bernoulli law parameter is \begin{equation}\label{eq:LDAbernoulliParam}
+{\color{Blue}
+\pi^* = p^*_1 = |\calC_1|/n
+}
+\end{equation}
+The Gaussian means are given by the class barycenters:
+\begin{equation}\label{eq:LDAclassMean}
 {\color{Blue}
 	\mu^*_i = \frac{1}{|\calC_i|}\sum_{n\in\calC_i} x_n
 	\quad \text{for } i = 0,1
@@ -197,7 +203,7 @@ Recalling that $\nabla_M \log|M| = M^{-1}$, we have the Euler condition for $W$
 	= 0
 \]
 so at the optimum the precision matrix is the empirical covariance
-\begin{equation}
+\begin{equation}\label{eq:LDAcovar}
 {\color{Blue}
 	\Sigma^* = (W^*)^{-1} =
 	\frac{1}{n} \sum_{n=1}^N (x_n - \mu^*_{y_n})(x_n - \mu^*_{y_n})^T
@@ -205,7 +211,7 @@ so at the optimum the precision matrix is the empirical covariance
 \end{equation}
 
 \paragraph{Conditional distribution} The posterior distribution of the class label $y$ given $x$ is
-\[
+\begin{equation}\label{eq:LDAPosteriorProba}
 p(y=1|x) =
 \frac{
 	\pi e^{-\frac{1}{2}(x-\mu_1)^T\Sigma^{-1}(x-\mu_1)}
@@ -213,7 +219,7 @@ p(y=1|x) =
 	\pi e^{-\frac{1}{2}(x-\mu_1)^T\Sigma^{-1}(x-\mu_1)} +
 	(1-\pi) e^{-\frac{1}{2}(x-\mu_0)^T\Sigma^{-1}(x-\mu_0)}
 }
-\]
+\end{equation}
 In the logistic regression model, the posterior distribution is given by
 \[
 	p(y=1|x) =
@@ -223,23 +229,33 @@ In the logistic regression model, the posterior distribution is given by
 
 \paragraph{Decision boundary} Setting $p(y=1|x) = 1/2$, we have that $x$ satisfies
 \begin{equation}\label{eq:LDADecisionBoundaryEqn}
+{\color{Blue}
 	\log\left(\frac{\pi}{1-\pi}\right) =
 	(\mu_1 - \mu_0)^T\Sigma^{-1}\left(x - \frac{\mu_0+\mu_1}{2}\right)
+}
 \end{equation}
-This is the equation of a hyperplane with normal vector $a = \Sigma^{-1}(\mu_1 - \mu_0)$. Finding a support vector $w$ to a 2D line of normal vector $a$ can be done by start with $e$ and define $w\coloneqq e - \langle \frac{a}{\|a\|}, e\rangle \frac{a}{\|a\|}$. \autoref{fig:LDAboundaryPlot} shows the contour plot of the posterior probability $p(y=1|x)$, along with the decision boundary.
+This is the equation of a hyperplane with normal vector $a = \Sigma^{-1}(\mu_1 - \mu_0)$. Finding a support vector $w$ to a 2D line of normal vector $a$ can be done by start with $e$ and define $w\coloneqq e - \langle \frac{a}{\|a\|}, e\rangle \frac{a}{\|a\|}$. \autoref{fig:LDAboundaryPlot} shows the contour plot of the posterior probability \eqref{eq:LDAPosteriorProba}, along with the decision boundary.
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.49\linewidth}
-	\includegraphics[width=\linewidth]{./images/lda-pointcloud-decisionbound.pdf}
-	\caption{Point cloud in $\RR^2$, and decision boundary \eqref{eq:LDADecisionBoundaryEqn}}
+	\begin{subfigure}[t]{.64\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-decisionbound-dA.pdf}
+	\caption{Point cloud of dataset \texttt{trainA} in $\RR^2$, and decision boundary \eqref{eq:LDADecisionBoundaryEqn}. It is apparent this dataset is linearly separable.}
 	\label{fig:LDAboundaryPlot}
 	\end{subfigure}
-	\begin{subfigure}[t]{.49\linewidth}
-	\includegraphics[width=\linewidth]{./images/lda-pointcloud-mixture-probagap.pdf}
-	\caption{Mixture of Gaussians underlying the LDA.}
+	\begin{subfigure}[t]{.64\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-mixture-probagap-dA.pdf}
+	\caption{Mixture of Gaussians underlying the LDA for dataset \texttt{trainA}.}
 	\end{subfigure}
-	\caption{Linear discriminant analysis for dataset \texttt{trainA}.}\label{fig:LDAplot}
+	\begin{subfigure}[t]{.49\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-decisionbound-dB.pdf}
+	\caption{Point cloud of dataset \texttt{trainB} along with the LDA decision boundary. The classes are more interlaced than dataset A, but less than C.}\label{fig:LDAdataB}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.49\linewidth}
+	\includegraphics[width=\linewidth]{./images/lda-pointcloud-decisionbound-dC.pdf}
+	\caption{Point cloud of dataset \texttt{trainC} along with the LDA decision boundary. The classes are much more interlaced than datasets A and B.}\label{fig:LDAdataC}
+	\end{subfigure}
+	\caption{Linear discriminant analysis.}\label{fig:LDAplot}
 \end{figure}
 
 
@@ -250,48 +266,77 @@ Introduce the logistic function
 \[
 	\sigma(x) = \frac{1}{1 + e^{-x}}
 \]
-which has property $\sigma'(x) = \sigma(x)(1-\sigma(x))$.
+which has property $\sigma'(x) = \sigma(x)(1-\sigma(x))$. Under the model, the probability that $y=1$ given $x$ is
+\[
+	p(y=1|x) = \sigma(w^Tx)
+\]
 
 Denoting $\epsilon_n = 2y_n - 1 \in \{-1,1\}$ and $\bar{x}_n = (1, x_n)$, the log-likelihood is given by
 \begin{equation}
 L(w) = \sum_{n=1}^N \log\sigma(\epsilon_n w^T\bar{x}_n)
 \end{equation}
-In this formulation, the vector $w\in\RR^3$ also holds the bias as $w_0$. To compute the MLE $w^* = \argmax_{w} L(w)$, we will use a Newton method.
-
-The gradient of $L$ is
-\begin{equation}
-\nabla_w L(w) =
-\sum_{n=1}^N \left(1 - \sigma(\epsilon_n w^T\bar{x}_n)\right) \epsilon_n \bar{x}_n
-\end{equation}
-and its hessian matrix is
-\begin{equation}
-\nabla_w^2 L(w) =
+In this formulation, the vector $w\in\RR^3$ also holds the bias as $w_0$. To compute the MLE $w^* = \argmax_{w} L(w)$, we can use Newton's method: we only require the gradient and hessian matrix, which are given respectively by
+\begin{align}
+\nabla_w L(w) &=
+\sum_{n=1}^N \left(1 - \sigma(\epsilon_n w^T\bar{x}_n)\right) \epsilon_n \bar{x}_n \\
+\nabla_w^2 L(w) &=
 \sum_{n=1}^N (\sigma(\epsilon_nw^T\bar{x}_n)-1)\sigma(\epsilon_nw^T\bar{x}_n) \bar{x}_n \bar{x}_n^T
-\end{equation}
+\end{align}
 
 We obtain the results in \autoref{fig:LogisticReg}, with weights
 \[
-	\begin{bmatrix}
-	b \\ w
-	\end{bmatrix} =
-	\begin{bmatrix}
-	198.20194308 \\ 8.86368223\\ -34.28264052
-	\end{bmatrix}
+{\color{Blue}
+	(b, w_1, w_2) = (174.22681818, 7.82121503, -30.17412171)
+}
 \]
 
 
 \begin{figure}
+	\begin{subfigure}{0.49\linewidth}
 	\centering
-	\includegraphics[width=\linewidth]{./images/logisticreg-result.pdf}
-	\caption{Logistic regression on the dataset \texttt{trainA}. The decision boundary is apparent, and the transition from one class to another is sharp.}\label{fig:LogisticReg}
+	\includegraphics[width=\linewidth]{./images/logisticreg-result-dA.pdf}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}
+	\centering
+	\includegraphics[width=\linewidth]{./images/logisticreg-result-dC.pdf}
+	\end{subfigure}
+	\caption{Logistic regression on datasets A and C. The decision boundary is apparent, and the transition from one class to another is sharper than in LDA or linear regression, but we see interlaced classes lead to a ``fuzzy" boundary.}\label{fig:LogisticReg}
 \end{figure}
 
 
 \subsection{Linear regression}
 
+The linear regression model is as follows:
+\begin{equation}\label{eq:LinRegModel}
+	y = w^Tx + b + \epsilon
+\end{equation}
+The weights $\bar{w}=(b, w)$ are given using the usual formula
+\begin{equation}
+{\color{Blue}
+	X^TX\bar{w} = X^TY
+}
+\end{equation}
+with $X = \begin{bsmallmatrix}1& x_1^T\\ \vdots&\vdots\\ 1&x_n^T\end{bsmallmatrix}$ and $Y = (y_1,\ldots,y_n)^T \in \RR^n$.
 
+On dataset A, we obtain the weights
+\[
+\color{Blue}
+(b, w_1, w_2)
+= (1.38345774,  0.05582438, -0.17636636)
+\]
 
-
+\begin{figure}
+	\begin{subfigure}{0.49\linewidth}
+	\centering
+	\includegraphics[width=\linewidth]{./images/linearreg-result-dA.pdf}
+	\caption{Linear regression for dataset A.}
+	\end{subfigure}
+	\begin{subfigure}{0.49\linewidth}
+	\centering
+	\includegraphics[width=\linewidth]{./images/linearreg-result-dC.pdf}\caption{For dataset C.}
+	\end{subfigure}
+	\caption{Linear regression model \eqref{eq:LinRegModel} with decision boundary.}
+\end{figure}
 
 
 
@@ -300,10 +345,67 @@ We obtain the results in \autoref{fig:LogisticReg}, with weights
 
 \subsection{Application}
 
+We computed the different classification errors for all datasets (on the training and testing subsets) for the different models: they are summarized in \cref{fig:ApplicationModelComparison}.
+
+\begin{figure}
+	\centering
+	\begin{subfigure}{0.74\linewidth}
+	\centering
+	\begin{tabular}{lrrrr}
+		\toprule
+		{} &         A &      B &         C &      mean \\
+		\midrule
+		lda\_train      &  0.000000 &  0.035 &  0.046667 &  0.027222 \\
+		lda\_test       &  0.036667 &  0.010 &  0.035000 &  0.027222 \\
+		logistic\_train &  0.000000 &  0.010 &  0.030000 &  0.013333 \\
+		logistic\_test  &  0.036667 &  0.000 &  0.060000 &  0.032222 \\
+		linear\_train   &  0.000000 &  0.020 &  0.026667 &  0.015556 \\
+		linear\_test    &  0.036667 &  0.010 &  0.060000 &  0.035556 \\
+		qda\_train      &  0.000000 &  0.010 &  0.026667 &  0.012222 \\
+		qda\_test       &  0.040000 &  0.010 &  0.060000 &  0.036667 \\
+		\bottomrule
+	\end{tabular}
+	\end{subfigure}
+	\begin{subfigure}{0.76\linewidth}
+	\centering
+	\includegraphics[width=\linewidth]{./images/misclassification-with-qda.pdf}
+	\end{subfigure}
+	\caption{Misclassication errors for the different models on the train and test sets: LDA, logistic regression, linear regression, and QDA.}\label{fig:ApplicationModelComparison}
+\end{figure}
+
+On average, the error on the training set is lower than that on the testing set.
+
+LDA yields consistent results across training and testing on average: however, it overfits on dataset A which has a linearly separable training set, which is a problem all the other models have. It has higher training than testing error on datasets B and C which had training sets with interlaced classes, but it ends up being robust when testing on them (see \cref{fig:LDAdataB,fig:LDAdataC}).
+
+Logistic regression performs well overall too, and has lower error on the non-linearly separable datasets B and C, offering better overall training error and staying consistent with testing.
+
+The linear model has inconsistent results across the datasets: it generalizes especially poorly in the case of dataset C.
 
 
 \subsection{QDA model}
 
+This time, we suppose a mixture model for $x$ where the covariance matrices $\Sigma_0, \Sigma_1$ are not necessarily equal. The maximum likelihood estimates \cref{eq:LDAbernoulliParam,eq:LDAclassMean} work out the same\footnote{The barycenters in \cref{eq:LDAclassMean} are independent of the covariance.}, but the estimates of the precision matrices $W_0 = \Sigma_0^{-1}$ and $W_1 = \Sigma_1^{-1}$ and the structure of the decision boundary change. Writing out the Euler conditions for $W_0, W_1$ lead to the MLEs being the empirical covariances of each class:
+\begin{equation}\label{eq:QDAcovar}
+{\color{Blue}
+	\Sigma^*_i = (W^*_i)^{-1} = \frac{1}{|\calC_i|}\sum_{n\in\calC_i} (x_n - \mu_i^*)(x_n - \mu_i^*)^T
+}
+\end{equation}
+
+\begin{figure}
+	\begin{subfigure}{.49\linewidth}
+	\centering
+	\includegraphics[width=\linewidth]{./images/qda-cloud-decision-dA.pdf}
+	\caption{QDA on dataset A.}	
+	\end{subfigure}
+	\begin{subfigure}{.49\linewidth}
+		\centering
+		\includegraphics[width=\linewidth]{./images/qda-cloud-decision-dC.pdf}
+		\caption{QDA on dataset C.}
+	\end{subfigure}
+	\caption{Point cloud and decision boundary for the QDA model.}\label{fig:QDA}
+\end{figure}
+
+The QDA model's plots for the posterior probabilities and decision boundaries are given \cref{fig:QDA}. The model overfits on dataset A (as the other models do). It has good and consistent results on dataset B, but has worse results on dataset C (just like the other models except for LDA).
 
 
 
