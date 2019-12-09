@@ -1,0 +1,151 @@
+% !TeX spellcheck = en_US
+\documentclass[11pt]{article}
+
+\usepackage[hmargin=3.4cm,vmargin=2.4cm]{geometry}
+\usepackage{mathtools}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{amssymb,dsfont,stmaryrd}
+\usepackage{algorithm2e}
+\usepackage{hyperref,cleveref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{titlesec}
+
+\hypersetup{
+	colorlinks,
+	urlcolor=NavyBlue
+}
+
+%%% Math macros %%%
+
+\newcommand\RR{\mathbb{R}}
+\newcommand\CC{\mathbb{C}}
+\newcommand\ZZ{\mathbb{Z}}
+\newcommand\NN{\mathbb{N}}
+\newcommand\TT{\mathbb{T}}
+\newcommand\PP{\mathbb{P}}
+\newcommand\EE{\mathbb{E}}
+\DeclarePairedDelimiter{\intinterv}{\llbracket}{\rrbracket}
+
+\renewcommand{\epsilon}{\varepsilon}
+
+\newcommand{\suchthat}{\mathrm{s.t.}}
+
+\DeclareMathOperator*{\argmin}{\mathrm{argmin}}
+\DeclareMathOperator*{\argmax}{\mathrm{argmax}}
+\DeclareMathOperator{\diag}{\mathrm{diag}}
+\DeclareMathOperator{\sgn}{\mathrm{sgn}}
+\DeclareMathOperator{\trace}{\mathrm{Tr}}
+
+\newcommand{\calM}{\mathcal{M}}
+\newcommand{\calP}{\mathcal{M}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calX}{\mathcal{X}}
+\newcommand{\calL}{\mathcal{L}}
+\newcommand{\calC}{\mathcal{C}}
+\newcommand{\calD}{\mathcal{D}}
+
+
+%%% Section titling setup %%%
+
+\titleformat*{\section}{\LARGE\bfseries\sffamily}
+\titleformat*{\subsection}{\Large\bfseries\sffamily}
+
+\titleformat{\paragraph}[runin]{\sffamily\bfseries}{}{}{}[.]
+
+
+%%% Document title %%%
+
+\title{
+	MVA -- Probabilistic Graphical Models\\
+	{\color{NavyBlue}\sffamily Homework 2}
+}
+
+\author{
+	Wilson \textsc{Jallet}\thanks{\url{wilson.jallet@polytechnique.org}}}
+
+
+\begin{document}
+
+\maketitle
+
+\section{K-means and the EM algorithm}
+
+We consider a mixture model of $K$ components for a dataset $(X_i)$ where $X_i\in\RR^d$. We denote $Z_i \in \{1,\ldots,K\}$ the latent hidden label. Each component occurs with probability $p_k = \PP(Z_i = k)$ and is distributed as
+\[
+	X_i \sim \calN(\mu_k, D_k)
+\]
+i.e. $p(x|k) = \frac{1}{((2\pi)^d |D_k|)^{1/2}} \exp(-\frac{1}{2} (x-\mu_k)^T D_k^{-1}(x - \mu_k))$.
+
+The data log-likelihood under parameters $\Theta = ((p_1, \mu_1,D_1),\ldots,(p_K,\mu_K,D_K))$ is
+\[
+	\calL(X_1,\ldots,X_n; \Theta) =
+	\sum_{i=1}^n \log\left(
+		\sum_{k=1}^K p_k p(X_i | k; \mu_k, D_k)
+	\right)
+\]
+We seek to compute the MLE
+\[
+	\widehat\Theta\in \argmax_\Theta \calL(X_1,\ldots,X_n;\Theta)
+\]
+This optimization problem is intractable when using straightforward methods.
+
+The EM algorithm goes as follows:
+\begin{itemize}
+	\item \textit{\underline{Expectation}} Compute the posterior probability of the latent variables $Z_i$:
+	\[
+	q^{(t)}_{k,i} = p(Z_i = k|X_i;\Theta^{(t)}) =
+	\frac{
+		p^{(t)}_k p(X_i|Z_i=k; \Theta^{(t)})
+	}{
+		\sum_{\ell=1}^K p^{(t)}_\ell p(X_i|Z_i=\ell; \Theta^{(t)})
+	}
+	\]
+	and denote $w_k^{(t)} = \sum_{i=1}^n q_{k,i}^{(t)}$ -- we then have $\sum_{k=1}^K w_k^{(t)} = n$.
+	\item \textit{\underline{Maximization}} Update the parameters $\Theta^{(t)}$ by maximizing the lower bound objective:
+	\[
+	\max_{\Theta}~
+	\mathcal{J}(q^{(t)}, \Theta) =
+	\sum_{i=1}^n \left(
+	\sum_{k=1}^K q^{(t)}_{k,i}
+	\left(
+		\log p_k
+		- \frac{d}{2}\log(2\pi)
+		- \frac{1}{2}\log{|D_k|}
+		- \frac{1}{2}(X_i - \mu_k)^T D_k^{-1}(X_i-\mu_k)
+	\right)
+	\right)
+	\]
+	subject to $\sum_{k=1}^K p_k = 1$ (associated to a multiplier $\nu$). The KKT conditions give the null gradient condition:
+	\begin{subequations}
+	\begin{align}
+		& \frac{1}{p_k} w_k^{(t)} - \nu = 0  \\
+		& -\sum_{i=1}^n q_{k,i}^{(t)}D_k^{-1}(\mu_k - X_i) = 0  \\
+		& -\frac{1}{2}
+		\sum_{i=1}^n q_{k,i}^{(t)}
+		(D_k^{-1} - D_k^{-2}\diag((X_i-\mu_k))^2) = 0
+	\end{align}
+	\end{subequations}
+	Which leads to the updates:
+	\begin{subequations}
+	\begin{align}
+		p_k &= \frac{1}{n}w_k^{(t)}  \\
+		\mu_k &= \frac{1}{w_k^{(t)}}
+		\sum_{i=1}^n q_{k,i}^{(t)} X_i  \\
+		D_k &= \frac{1}{w_k^{(t)}}
+		\sum_{i=1}^n q_{k,i}^{(t)} \diag((X_i-\mu_k))^2
+	\end{align}
+	\end{subequations}
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+\end{document}

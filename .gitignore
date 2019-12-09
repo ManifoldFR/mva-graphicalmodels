@@ -9,3 +9,5 @@
 *.gz
 
 homework1/make.sh
+
+.vscode
