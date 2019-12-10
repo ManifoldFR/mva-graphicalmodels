@@ -1,7 +1,7 @@
 % !TeX spellcheck = en_US
 \documentclass[11pt]{article}
 
-\usepackage[hmargin=3.4cm,vmargin=2.4cm]{geometry}
+\usepackage[hmargin=3.1cm,vmargin=2.4cm]{geometry}
 \usepackage{mathtools}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amssymb,dsfont,stmaryrd}
@@ -72,7 +72,7 @@
 
 \section{K-means and the EM algorithm}
 
-We consider a mixture model of $K$ components for a dataset $(X_i)$ where $X_i\in\RR^d$. We denote $Z_i \in \{1,\ldots,K\}$ the latent hidden label. Each component occurs with probability $p_k = \PP(Z_i = k)$ and is distributed as
+\paragraph{Question 1} We consider a mixture model of $K$ components for a dataset $(X_i)$ where $X_i\in\RR^d$. We denote $Z_i \in \{1,\ldots,K\}$ the latent hidden label. Each component occurs with probability $p_k = \PP(Z_i = k)$ and is distributed as
 \[
 	X_i \sim \calN(\mu_k, D_k)
 \]
@@ -94,14 +94,14 @@ This optimization problem is intractable when using straightforward methods.
 The EM algorithm goes as follows:
 \begin{itemize}
 	\item \textit{\underline{Expectation}} Compute the posterior probability of the latent variables $Z_i$:
-	\[
+	\begin{equation}
 	q^{(t)}_{k,i} = p(Z_i = k|X_i;\Theta^{(t)}) =
 	\frac{
 		p^{(t)}_k p(X_i|Z_i=k; \Theta^{(t)})
 	}{
 		\sum_{\ell=1}^K p^{(t)}_\ell p(X_i|Z_i=\ell; \Theta^{(t)})
 	}
-	\]
+	\end{equation}
 	and denote $w_k^{(t)} = \sum_{i=1}^n q_{k,i}^{(t)}$ -- we then have $\sum_{k=1}^K w_k^{(t)} = n$.
 	\item \textit{\underline{Maximization}} Update the parameters $\Theta^{(t)}$ by maximizing the lower bound objective:
 	\[
@@ -128,7 +128,7 @@ The EM algorithm goes as follows:
 	\end{align}
 	\end{subequations}
 	Which leads to the updates:
-	\begin{subequations}
+	\begin{subequations}\label{eq:DiagEMupdate}
 	\begin{align}
 		p_k &= \frac{1}{n}w_k^{(t)}  \\
 		\mu_k &= \frac{1}{w_k^{(t)}}
@@ -139,10 +139,69 @@ The EM algorithm goes as follows:
 	\end{subequations}
 \end{itemize}
 
+\paragraph{Question 2} The main advantage of this ``reduced" covariance mixture model is that it is more sparse: it uses far fewer parameters ($K(2d+1)$) than the its full counterpart, which has $K(1 + d + d(d+1)/2)$ parameters. For datasets with relatively independent features (conditionally on the latent class), this can give performance very close to the full covariance while having a smaller, simpler model (meaning better AIC or BIC scores).
+
+
+\paragraph{Question 3}
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/diag_em_K3.pdf}
+		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation). $K=3$ classes.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/full_em_K3.pdf}
+		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}. $K=3$ classes.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/kmeans_K3.pdf}
+		\caption{Centroids of the K-means model.}
+	\end{subfigure}
+	\caption{Comparison of the diagonal and full covariance mixture models and K-means for $K=3$ classes.}\label{fig:EMdiagfullComparisonK3}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/diag_em_K4.pdf}
+		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation).}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/full_em_K4.pdf}
+		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/kmeans_K4.pdf}
+		\caption{K-means.}
+	\end{subfigure}
+	\caption{Comparison of the models for $K=4$ classes.}\label{fig:EMdiagfullComparisonK4}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/diag_em_K2.pdf}
+		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation).}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/full_em_K2.pdf}
+		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.8\linewidth}
+		\includegraphics[width=\linewidth]{images/kmeans_K2.pdf}
+		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
+	\end{subfigure}
+	\caption{Comparison of the models for $K=2$ classes.}\label{fig:EMdiagfullComparisonK2}
+\end{figure}
+
+\Cref{fig:EMdiagfullComparisonK3} compares the obtained latent class centroids and confidence ellipsoids (where applicable) for the diagonal and full covariance mixture models and K-means, on the Iris dataset, for a small number of classes $K=3$ (the actual number of classes in the data). \Cref{fig:EMdiagfullComparisonK2,fig:EMdiagfullComparisonK4} represent the same for $K =2, 4$ classes.
+
+
+\paragraph{Question 4} 
 
 
 
-
+\section{Graphs, algorithms and Ising}
 
 
 

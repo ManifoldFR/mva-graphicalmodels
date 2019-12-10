@@ -59,4 +59,5 @@ def gaussian_mixture_diagonal(X: ndarray, num_class: int, max_iters: int = 100):
             new_sigma = np.sum(qk * diagos_, axis=0) / w[k]
             sigmas[k][diag_idx] = new_sigma
 
-    return P, mus, sigmas
+    labels = q.max(axis = 0)  # (n_samples,)
+    return P, mus, sigmas, labels
