@@ -4,5 +4,5 @@ Coursework for the class [Introduction to graphical models](http://helios.mi.par
 
 This repo holds my code and report for the homeworks.
 
-![](images/graphs/ising_partition.png)
+![](homework2/images/graphs/ising_partition.png)
 
