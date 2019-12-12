@@ -12,6 +12,7 @@
 \usepackage{subcaption}
 \usepackage{titlesec}
 
+
 \hypersetup{
 	colorlinks,
 	urlcolor=NavyBlue
@@ -45,6 +46,9 @@
 \newcommand{\calL}{\mathcal{L}}
 \newcommand{\calC}{\mathcal{C}}
 \newcommand{\calD}{\mathcal{D}}
+
+\newcommand{\bmmu}{\boldsymbol{\mu}}
+\newcommand{\bmpsi}{\boldsymbol{\psi}}
 
 
 %%% Section titling setup %%%
@@ -104,7 +108,7 @@ The EM algorithm goes as follows:
 	\end{equation}
 	and denote $w_k^{(t)} = \sum_{i=1}^n q_{k,i}^{(t)}$ -- we then have $\sum_{k=1}^K w_k^{(t)} = n$.
 	\item \textit{\underline{Maximization}} Update the parameters $\Theta^{(t)}$ by maximizing the lower bound objective:
-	\[
+	\begin{equation}
 	\max_{\Theta}~
 	\mathcal{J}(q^{(t)}, \Theta) =
 	\sum_{i=1}^n \left(
@@ -116,7 +120,7 @@ The EM algorithm goes as follows:
 		- \frac{1}{2}(X_i - \mu_k)^T D_k^{-1}(X_i-\mu_k)
 	\right)
 	\right)
-	\]
+	\end{equation}
 	subject to $\sum_{k=1}^K p_k = 1$ (associated to a multiplier $\nu$). The KKT conditions give the null gradient condition:
 	\begin{subequations}
 	\begin{align}
@@ -124,7 +128,7 @@ The EM algorithm goes as follows:
 		& -\sum_{i=1}^n q_{k,i}^{(t)}D_k^{-1}(\mu_k - X_i) = 0  \\
 		& -\frac{1}{2}
 		\sum_{i=1}^n q_{k,i}^{(t)}
-		(D_k^{-1} - D_k^{-2}\diag((X_i-\mu_k))^2) = 0
+		(D_k^{-1} - D_k^{-2}\diag(X_i-\mu_k)^2) = 0
 	\end{align}
 	\end{subequations}
 	Which leads to the updates:
@@ -134,7 +138,7 @@ The EM algorithm goes as follows:
 		\mu_k &= \frac{1}{w_k^{(t)}}
 		\sum_{i=1}^n q_{k,i}^{(t)} X_i  \\
 		D_k &= \frac{1}{w_k^{(t)}}
-		\sum_{i=1}^n q_{k,i}^{(t)} \diag((X_i-\mu_k))^2
+		\sum_{i=1}^n q_{k,i}^{(t)} \diag(X_i-\mu_k)^2
 	\end{align}
 	\end{subequations}
 \end{itemize}
@@ -145,15 +149,15 @@ The EM algorithm goes as follows:
 \paragraph{Question 3}
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/diag_em_K3.pdf}
 		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation). $K=3$ classes.}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/full_em_K3.pdf}
 		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}. $K=3$ classes.}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/kmeans_K3.pdf}
 		\caption{Centroids of the K-means model.}
 	\end{subfigure}
@@ -162,15 +166,15 @@ The EM algorithm goes as follows:
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/diag_em_K4.pdf}
 		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation).}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/full_em_K4.pdf}
 		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/kmeans_K4.pdf}
 		\caption{K-means.}
 	\end{subfigure}
@@ -179,15 +183,15 @@ The EM algorithm goes as follows:
 
 \begin{figure}
 	\centering
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/diag_em_K2.pdf}
 		\caption{Diagonal Gaussian mixture model on the Iris dataset (our implementation).}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/full_em_K2.pdf}
 		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
 	\end{subfigure}
-	\begin{subfigure}[t]{.8\linewidth}
+	\begin{subfigure}[t]{.95\linewidth}
 		\includegraphics[width=\linewidth]{images/kmeans_K2.pdf}
 		\caption{Full Gaussian mixture on the Iris dataset using \texttt{scikit-learn}.}
 	\end{subfigure}
@@ -197,14 +201,92 @@ The EM algorithm goes as follows:
 \Cref{fig:EMdiagfullComparisonK3} compares the obtained latent class centroids and confidence ellipsoids (where applicable) for the diagonal and full covariance mixture models and K-means, on the Iris dataset, for a small number of classes $K=3$ (the actual number of classes in the data). \Cref{fig:EMdiagfullComparisonK2,fig:EMdiagfullComparisonK4} represent the same for $K =2, 4$ classes.
 
 
-\paragraph{Question 4} 
+\paragraph{Question 4} I created synthetic data made up of an ellipsis and annulus: \Cref{fig:SynthDataComparison} shows how the mixture models and K-means compare.
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.5\linewidth}
+	\includegraphics[width=\linewidth]{custom_data/diag_em_K2.pdf}
+	\caption{Diagonal Gaussian mixture model.}
+	\end{subfigure}~
+	\begin{subfigure}[t]{.5\linewidth}
+	\includegraphics[width=\linewidth]{custom_data/full_em_K2.pdf}
+	\caption{Full Gaussian mixture model.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.6\linewidth}
+	\includegraphics[width=\linewidth]{custom_data/kmeans_K2.pdf}
+	\caption{Result of the K-means model: notice how the class centroids are offset from the actuel center of the class.}
+	\end{subfigure}
+	\caption{Comparison of the models on synthetic data where K-means performs worse than mixtures.}
+	\label{fig:SynthDataComparison}
+\end{figure}
 
+
+
+\clearpage
 
 
 \section{Graphs, algorithms and Ising}
 
+\paragraph{Question 1} We recall that for an undirected chain graph $G$ probability distributions factor as
+\begin{equation}
+	p(x) = \frac{1}{Z}
+	\prod_{i=1}^n \psi_i(x_i) 
+	\prod_{i=1}^{n-1} \psi_{i,i+1}(x_i, x_{i+1})
+\end{equation}
+
+\newcommand{\LogSumExp}{\mathrm{LogSumExp}}
+
+\textbf{The algorithm.} The marginal distribution of $X_i$ can be rewritten as
+\[
+	p(x_i) = \frac{1}{Z}\mu_{i-1, i}(x_i) \psi_i(x_i) \mu_{i+1, i}(x_i)
+\]
+where $\mu_{i-1, i}, \mu_{i+1, i}$ are (forward, backward) messages from $i-1$ to $i$ and $i+1$ to $i$. They are propagated as:
+\begin{subequations}
+\begin{align}
+	\mu_{i, i+1}(x_{i+1}) &= \sum_{x_i}
+	\psi_i(x_i)\psi_{i,i+1}(x_i, x_{i+1})
+	\mu_{i-1, i}(x_i)  \\
+	\mu_{i, i-1}(x_{i-1}) &= \sum_{x_i} \psi_{i}(x_i) \psi_{i-1,i}(x_{i-1}, x_i) \mu_{i+1, i}(x_i)
+\end{align}
+\end{subequations}
+
+
+\textbf{Practical implementation.} If the state space $\calX$ of the variables $X_1,\ldots,X_n$ (for instance for binary variables) is discrete we can represent the input functions $\psi_i$ and $\psi_{i,i+1}$ as arrays. If not (continuous variables for instance), we can discretize a grid over $\calX$ and precompute an array of values for the factors.
+Denoting the arrays in bold letters, we forward-propagate by
+\[
+	\bmmu_{i, i+1} =
+	(\bmmu_{i-1, i} \odot \bmpsi_i)\bmpsi_{i,i+1}
+\]
+and back-propagate by
+\[
+	\bmmu_{i,i-1} = (\bmmu_{i,i+1} \odot \bmpsi_i) \bmpsi_{i-1,i}^T
+\]
+which allows to compute the marginal distributions using vectorized operations.
+
+\Cref{fig:IndependentNodeUGM} shows an implementation for independent edges. The expected marginals are $X_1 \sim \calM(1;1/4,1/2,1/4)$, $X_2\sim \calN(0,2)$ and $X_3 \sim \mathcal{B}(1/2)$.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=.9\linewidth]{images/graphs/independent_undirected_chain.pdf}
+	\caption{Sanity test: undirected graph with $n=3$ nodes, and a probability distribution $p$ with factors $\psi_1 = (1, 2, 1)$, $\psi_2(x_2) = \exp(-x_2^2/4)$, $\psi_3 = (1,1)$ and $\psi_{i,i+1} = 1$ (i.e. independence).}\label{fig:IndependentNodeUGM}
+\end{figure}
 
 
 
+\paragraph{Question 2} The vertex set $V$ of the graph $G = (V,E)$ induced by the grid has vertices of the form $v = (j,k)$ where $1\leq j \leq w$ and $1 \leq k \leq h$. An easy junction tree to extract from $G$ is given by collapsing the rows into supernodes: the resulting tree $T$ has vertex set $V_T = \{c_k\}$ where $c_k = \{(j,k)\}_j$ and looking at the resulting edges shows $T$ is actually an undirected chain $c_1-c_2 -\cdots-c_h$. Computationally, since there are $w=10$ columns and $h=100$ rows, this leads to a reasonably-sized state space ($2^{10}$ different states) for each supernode.
+
+\begin{align*}
+	p(x) &= \frac{1}{Z}\prod_k
+	\tilde{\psi}_k(x_{c_k})
+	\prod_k
+	\tilde{\psi}_{k,k+1}(x_{c_k},x_{c_{k+1}})
+\end{align*}
+where 
+\begin{align*}
+	\tilde{\psi}_k(x_{c_k}) &= \prod_{j=1}^w \psi_{(j,k)} (x_{(j,k)}) 
+	\prod_{j=1}^{w-1} \psi_{(j,k),(j+1,k)}(x_{(j,k)}, x_{(j+1,k)})  \\
+	\tilde{\psi}_{k,k+1}(x_{c_k}, x_{c_{k+1}}) &=
+	\prod_{j=1}^w \psi_{(j,k),(j,k+1)}(x_{(j,k)},x_{(j,k+1)})
+\end{align*}
 
 \end{document}

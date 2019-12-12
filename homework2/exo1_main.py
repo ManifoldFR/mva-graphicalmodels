@@ -18,7 +18,6 @@ plt.style.use("seaborn")
 data_arr = np.loadtxt("data.dat")
 X = data_arr[:, :2]
 labels_real = data_arr[:, 2]
-
 BASE_FOLDER = "custom_data"
 
 os.makedirs(BASE_FOLDER, exist_ok=True)
@@ -52,17 +51,18 @@ labels_kmean = km.predict(X)
 
 
 
-def plot_ellipse(mean: ndarray, cov: ndarray, ax: plt.Axes, n_std=1., alpha=.2):
+def plot_ellipse(mean: ndarray, cov: ndarray, ax: plt.Axes, n_std=1., alpha=.2, facecolor=None):
     from matplotlib.patches import Ellipse
     from scipy.linalg import eigh
     # Get eigendecomposition of the ellipse
     lbda, v = eigh(cov)
     stdevs = n_std * (lbda ** .5)
-    angle = np.degrees(np.arctan2(*v[:, 0]))
+    angle = np.degrees(np.arctan2(*v[:, 0][::-1]))
     # rmk: width, height are the diameters, not the radii
     ell = Ellipse(xy=mean, width=2*stdevs[0], height=2*stdevs[1],
                   angle=angle,
                   edgecolor='k',
+                  facecolor=facecolor,
                   linewidth=1.,
                   alpha=alpha,
                   zorder=1)
@@ -74,7 +74,7 @@ def plot_scatter(X, labels_real, ax: plt.Axes):
     colors = []
     for idx_class, lbl in enumerate(np.unique(labels_real)):
         sub_X = X[labels_real == lbl]
-        sc_ = ax.scatter(*sub_X.T, s=15, 
+        sc_ = ax.scatter(*sub_X.T, s=15, zorder=2,
                          label="Real label %s" % lbl,
                          edgecolors='k', lw=.8)
 
@@ -82,7 +82,7 @@ def plot_scatter(X, labels_real, ax: plt.Axes):
 
 if __name__ == '__main__':
     # Number of stds for plotting
-    n_std = 1
+    n_std = 2
 
 
     from itertools import combinations
@@ -93,10 +93,19 @@ if __name__ == '__main__':
     
     print("Diagonal covariance model:")
     
+    # nrows = 2
+    # ncols = 3
+    # figsize = (12, 5)
+    
     nrows = 1
     ncols = 1
+    figsize = (5, 4)
     
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4, 4))
+    
+    marker = "v"
+    
+    
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     try:
         axes = axes.ravel()
     except AttributeError:
@@ -110,13 +119,14 @@ if __name__ == '__main__':
         
         for index, cent in enumerate(mus):
             cent = cent[list(sub_feats)]
-            ax.scatter(*cent, marker="o",
-                    zorder=2,
+            sc_ = ax.scatter(*cent, marker=marker,
+                    zorder=3,
                     label="Class %d" % (index+1),
-                    edgecolor='k')
+                    edgecolor='w', s=100)
 
             cov = sigmas[index][np.ix_(sub_feats, sub_feats)]
-            plot_ellipse(cent, cov, ax, n_std=n_std)
+            col = sc_.get_facecolor()[0]
+            plot_ellipse(cent, cov, ax, n_std=n_std, facecolor=col)
 
         ax.legend(facecolor='white')
         ax.set_title("Diagonal mixture model (features %s)" % list(sub_feats))
@@ -133,7 +143,7 @@ if __name__ == '__main__':
     mus_full = gm.means_
     sigmas_full = gm.covariances_
 
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4,4))
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     try:
         axes = axes.ravel()
     except AttributeError:
@@ -147,13 +157,14 @@ if __name__ == '__main__':
 
         for index, cent in enumerate(mus_full):
             cent = cent[list(sub_feats)]
-            ax.scatter(*cent, marker="o",
-                    zorder=2,
+            sc_ = ax.scatter(*cent, marker=marker,
+                    zorder=3,
                     label="Class %d" % (index+1),
-                    edgecolor='k')
-
+                    edgecolor='w', s=100)
             cov = sigmas_full[index][np.ix_(sub_feats, sub_feats)]
-            plot_ellipse(cent, cov, ax, n_std=n_std)
+            col = sc_.get_facecolor()[0]
+            plot_ellipse(cent, cov, ax, n_std=n_std,
+                         facecolor=col)
 
         ax.legend(facecolor='white')
         ax.set_title("Full Gaussian mixture model (features %s)" % list(sub_feats))
@@ -169,7 +180,7 @@ if __name__ == '__main__':
     
     centroids = km.cluster_centers_
     
-    fig, axes = plt.subplots(nrows, ncols, figsize=(4, 4))
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     try:
         axes = axes.ravel()
     except AttributeError:
@@ -183,10 +194,10 @@ if __name__ == '__main__':
 
         for index, cent in enumerate(centroids):
             cent = cent[list(sub_feats)]
-            ax.scatter(*cent, marker="o",
-                    zorder=2,
+            ax.scatter(*cent, marker=marker,
+                    zorder=3,
                     label="Class %d" % (index+1),
-                    edgecolor='k')
+                    edgecolor='w', s=100)
 
         ax.legend(facecolor='white')
         ax.set_title("K-means (features %s)" % list(sub_feats))
