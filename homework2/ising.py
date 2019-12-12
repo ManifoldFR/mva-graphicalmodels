@@ -89,7 +89,7 @@ if __name__ == "__main__":
     height = 100
     alpha = 0.
     
-    beta_vals = np.linspace(.5, 1.5, 21)
+    beta_vals = np.linspace(0., 1.5, 31)
     logZ_vals = np.empty_like(beta_vals)
     
     for i, beta in enumerate(beta_vals):
@@ -109,9 +109,11 @@ if __name__ == "__main__":
     fig: plt.Figure = plt.figure()
     ax: plt.Axes = fig.add_subplot()
     ax.set_xlabel("Interaction strength $\\beta$")
+    ax.set_ylabel("$\\log(Z)$")
     ax.set_title("Partition function $Z(0,\\beta)$")
 
     ax.plot(beta_vals, logZ_vals)
-
+    fig.tight_layout()
+    
     plt.show()
 
