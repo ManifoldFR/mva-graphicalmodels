@@ -49,6 +49,7 @@
 
 \newcommand{\bmmu}{\boldsymbol{\mu}}
 \newcommand{\bmpsi}{\boldsymbol{\psi}}
+\newcommand{\bmphi}{\boldsymbol{\phi}}
 
 
 %%% Section titling setup %%%
@@ -277,16 +278,25 @@ which allows to compute the marginal distributions using vectorized operations.
 
 \begin{align*}
 	p(x) &= \frac{1}{Z}\prod_k
-	\tilde{\psi}_k(x_{c_k})
+	\phi_k(x_{c_k})
 	\prod_k
-	\tilde{\psi}_{k,k+1}(x_{c_k},x_{c_{k+1}})
+	\phi_{k,k+1}(x_{c_k},x_{c_{k+1}})
 \end{align*}
 where 
 \begin{align*}
-	\tilde{\psi}_k(x_{c_k}) &= \prod_{j=1}^w \psi_{(j,k)} (x_{(j,k)}) 
-	\prod_{j=1}^{w-1} \psi_{(j,k),(j+1,k)}(x_{(j,k)}, x_{(j+1,k)})  \\
-	\tilde{\psi}_{k,k+1}(x_{c_k}, x_{c_{k+1}}) &=
-	\prod_{j=1}^w \psi_{(j,k),(j,k+1)}(x_{(j,k)},x_{(j,k+1)})
+	\phi_k(x_{c_k}) &= \prod_{j=1}^w e^{\alpha x_{(j,k)}}
+	\prod_{j=1}^{w-1} e^{
+		\beta \mathds{1}(
+			x_{(j,k)}=x_{(j+1,k)}
+		)
+	}  \\
+	\phi_{k,k+1}(x_{c_k}, x_{c_{k+1}}) &=
+	\prod_{j=1}^w e^{
+		\beta \mathds{1}(
+			x_{(j,k)}=x_{(j,k+1)}
+		)
+	}
 \end{align*}
+The vector $\bmphi$ is of size $2^{10}$.
 
 \end{document}
