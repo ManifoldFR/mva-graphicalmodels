@@ -41,7 +41,7 @@ class UndirectedChain:
                 res += self.psi_edges[y]
         return res
     
-    def compute_marginal(self, index: int):
+    def compute_marginal(self, index: int, return_log=False):
         """Propagate.
         
         Args
@@ -63,5 +63,8 @@ class UndirectedChain:
         
         psi_idx = self.psis[index]
         
-        return np.exp(mu_fwd + psi_idx + mu_bwd)
-
+        res = mu_fwd + psi_idx + mu_bwd
+        if return_log:
+            return res
+        else:
+            return np.exp(res)

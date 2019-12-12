@@ -1,9 +1,9 @@
-"""
-Ising model.
+"""Ising model.
 """
 import numpy as np
 from numpy import ndarray
 import numba
+from scipy.special import logsumexp
 
 from algorithms.undirchain import UndirectedChain
 
@@ -63,7 +63,7 @@ class Ising:
         _junction_edge_fill(psi_edge_tree_log, base_psi_edge_log)
         
         self.psi_tree_log = psi_tree_log.ravel()  # flatten to 1D array
-        self.psi_edge_tree_log = psi_edge_tree_log.ravel()
+        self.psi_edge_tree_log = psi_edge_tree_log.reshape(np.prod(shape), np.prod(shape))
 
         # make list of pointers to the same tree psi
         psis_chain = [self.psi_tree_log for _ in range(self.height)]
@@ -87,11 +87,31 @@ def _junction_edge_fill(psi_edge_tree_log, base_psi_edge_log):
 if __name__ == "__main__":
     width = 10
     height = 100
-    alpha = 0.5
-    beta = 1.4
+    alpha = 0.
     
-    grid = Ising(width, height, alpha, beta)
+    beta_vals = np.linspace(.5, 1.5, 21)
+    logZ_vals = np.empty_like(beta_vals)
     
-    chain = grid.make_junction_tree()
+    for i, beta in enumerate(beta_vals):
+        grid = Ising(width, height, alpha, beta)
+        
+        chain = grid.make_junction_tree()
+        
+        ## Compute marginal 0
+        marginal = chain.compute_marginal(5, return_log=True)
+        
+        logZ_vals[i] = logsumexp(marginal)
+    print("Log(Z):", logZ_vals)
+
+    import matplotlib.pyplot as plt
+    plt.style.use('ggplot')
     
+    fig: plt.Figure = plt.figure()
+    ax: plt.Axes = fig.add_subplot()
+    ax.set_xlabel("Interaction strength $\\beta$")
+    ax.set_title("Partition function $Z(0,\\beta)$")
+
+    ax.plot(beta_vals, logZ_vals)
+
+    plt.show()
 

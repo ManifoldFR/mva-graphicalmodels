@@ -276,6 +276,7 @@ which allows to compute the marginal distributions using vectorized operations.
 
 \paragraph{Question 2} The vertex set $V$ of the graph $G = (V,E)$ induced by the grid has vertices of the form $v = (j,k)$ where $1\leq j \leq w$ and $1 \leq k \leq h$. An easy junction tree to extract from $G$ is given by collapsing the rows into supernodes: the resulting tree $T$ has vertex set $V_T = \{c_k\}$ where $c_k = \{(j,k)\}_j$ and looking at the resulting edges shows $T$ is actually an undirected chain $c_1-c_2 -\cdots-c_h$. Computationally, since there are $w=10$ columns and $h=100$ rows, this leads to a reasonably-sized state space ($2^{10}$ different states) for each supernode.
 
+The probability factorizes using the clusters as
 \begin{align*}
 	p(x) &= \frac{1}{Z}\prod_k
 	\phi_k(x_{c_k})
