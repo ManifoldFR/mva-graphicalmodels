@@ -127,9 +127,9 @@ Evidently,
 	p(y_i|\beta)
 	= \Phi(y_i\beta^Tx_i)  \\
 	p(z_i | \beta)  \sim \calN(\beta^T x_i, 1)  \\
-	p(y_i,z_i|\beta) = \mathds{1}_{\{y_iz_i > 0^\}}
+	p(y_i,z_i|\beta) = \mathds{1}_{\{y_iz_i > 0\}}
 \end{align*}
-and by Bayes' theorem we have the posteriors
+By Bayes' theorem we have the posteriors
 \begin{align*}
 	p(\beta|z) \propto p(\beta)p(z|\beta)
 	&\propto \exp\left(
