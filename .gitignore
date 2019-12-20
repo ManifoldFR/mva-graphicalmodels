@@ -8,6 +8,8 @@
 *.log
 *.gz
 
-homework1/make.sh
+*.dat
+
+*.zip
 
 .vscode
