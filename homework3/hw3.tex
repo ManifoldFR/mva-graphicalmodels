@@ -1,7 +1,7 @@
 % !TeX spellcheck = en_US
 \documentclass[11pt]{article}
 
-\usepackage[hmargin=3.1cm,vmargin=2.4cm]{geometry}
+\usepackage[hmargin=2.8cm,vmargin=2.4cm]{geometry}
 \usepackage{mathtools}
 \usepackage[dvipsnames]{xcolor}
 \usepackage{amssymb,dsfont,stmaryrd}
@@ -179,7 +179,7 @@ The testing accuracy (predicting using MAP) is of about $\approx 75\%$, using 40
 
 \begin{figure}
 	\centering
-	\includegraphics[width=.96\linewidth]{images/posterior_distribution_gibbs.png}
+	\includegraphics[width=.9\linewidth]{images/posterior_distribution_gibbs.png}
 	\caption{Some approximate posterior marginals for $\beta$ and $z$ given the data $X, y$.}\label{fig:GibbsMarginals}
 \end{figure}
 
@@ -320,7 +320,8 @@ The coordinate ascent variational approximation algorithm now reduces to alterna
 \subparagraph{Performance.} Inference with Gibbs sampling $M=5000$ samples (and a burn-in of 100) takes $\approx 10.4$ seconds. Variational approximation converges in 200 iterations (see \cref{fig:VI_L1_convergence}) in $\approx 0.22$ seconds, and sampling $M=5000$ times took $\approx 0.26$ seconds. \Cref{fig:VBGibbsPosteriorComparison} shows a comparison of the posterior marginals obtained with the two approaches: we can observe that the VI algorithm often returns lower posterior variance on $\beta$ than Gibbs. For prediction, we obtain similar MAP prediction accuracy on the test set -- around $75\%$.
 
 \begin{figure}[h]
-	\includegraphics[width=\linewidth]{images/posterior_VI_Gibbs_comparison_1.png}
+	\centering
+	\includegraphics[width=.75\linewidth]{images/posterior_VI_Gibbs_comparison_1.png}
 	\caption{Comparison of the posterior marginals between Variational Bayes and Gibbs sampling. Histograms built with $M=5000$ samples.}\label{fig:VBGibbsPosteriorComparison}
 \end{figure}
 
@@ -330,10 +331,45 @@ The coordinate ascent variational approximation algorithm now reduces to alterna
 \paragraph{Question 6}
 
 
+\Cref{fig:CompleteSeparDataset} shows a completely separated dataset in $\RR^2$ -- the separation line $x_1 + 1.5x_2 + 0.1 > 0$ is supported by a normal vector $\beta_\mathrm{true} = (1, 1.5)^T$, and bias $0.1$. A logistic regression model with maximum likelihood estimation would break down and not converge.
+
+For this dataset, the Gibbs sampler might not converge: if we have bias (an additional column in $X$ with ones), we get the trace plot of \Cref{fig:CompleteSeparFailedConv}.
+
+If we introduce instead a smaller constant column (of value $c = 10^{-3}$), we get \Cref{fig:CompleteSeparSmallBiasFix} where we can see the trace plot converge fast and that the posterior histograms resemble actual normal distributions.
+This is the same thing as introducing a different, much higher \textit{prior} for the bias variable, which in the supervised regression setting is equivalent to introducing penalization for the bias. This is still not perfect, as we can see in the histogram that the posterior distribution of $\beta_0$ lies in the range $\sim 400-600$: the corresponding bias (renormalizing by $c$) is estimated to be in $\sim 0.4-0.6$, which is wrong. In this setting MAP prediction accuracy on a test set of $1/5$th of the total data yields an accuracy of $89.5\%$.
 
 
+\begin{figure}[h]
+	\centering
+	\includegraphics[width=.66\linewidth]{images/separable_data.png}
+	\caption{Linearly separable data in dimension $p=2$.}\label{fig:CompleteSeparDataset}
+\end{figure}
 
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.66\linewidth}
+	\includegraphics[width=\linewidth]{images/separable_traceplot_fail.png}
+	\caption{Trace plot of $\beta_0$.}	
+	\end{subfigure}
+	\begin{subfigure}[t]{.66\linewidth}
+	\includegraphics[width=\linewidth]{images/separable_fail_posteriorhist.png}
+	\caption{Histogram of the posterior $\beta$ marginals.}	
+	\end{subfigure}
+	\caption{Failed convergence of Gibbs sampling for the separable dataset when a bias term is added. Increasing the amount of burn-in does not solve the problem.}\label{fig:CompleteSeparFailedConv}
+\end{figure}
 
+\begin{figure}
+	\centering
+	\begin{subfigure}[t]{.66\linewidth}
+	\includegraphics[width=\linewidth]{images/separable_smallbias_trace.png}
+	\caption{Trace plot.}
+	\end{subfigure}
+	\begin{subfigure}[t]{.66\linewidth}
+	\includegraphics[width=\linewidth]{images/separable_smallbias_posteriorhist.png}
+	\caption{Histograms of the posterior $\beta$ marginals.}
+	\end{subfigure}
+	\caption{Gibbs sampling. Trace plot and posterior $\beta$ histograms using a smaller constant column for the separable data of \cref{fig:CompleteSeparDataset}.}\label{fig:CompleteSeparSmallBiasFix}
+\end{figure}
 
 
 
