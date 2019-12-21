@@ -6,3 +6,4 @@ This repo holds my code and report for the homeworks.
 
 ![](homework2/images/graphs/ising_partition.png)
 
+![](homework3/images/posterior_distribution_gibbs.png)

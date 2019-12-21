@@ -58,8 +58,10 @@
 
 \newcommand{\bmX}{\boldsymbol{X}}
 
-\colorlet{darkblue}{NavyBlue!80!black}
+\colorlet{darkblue}{RoyalBlue!90!black}
+\colorlet{darkred}{Red!95!black}
 \newcommand{\bluefont}{\color{darkblue}}
+\newcommand{\redfont}{\color{darkred}}
 
 
 %%% Section titling setup %%%
@@ -67,8 +69,12 @@
 \titleformat*{\section}{\LARGE\bfseries\sffamily}
 \titleformat*{\subsection}{\Large\bfseries\sffamily}
 
-\titleformat{\paragraph}[hang]{\sffamily\bfseries}{}{}{}[]
+\titleformat{\paragraph}[hang]{\sffamily\large\bfseries}{}{}{}[]
 
+\titleformat{\subparagraph}[runin]{\sffamily\bfseries}{}{}{\textbullet}[]
+
+% \titlespacing{command}{left}{before-sep}{after-sep}
+\titlespacing*{\subparagraph}{2pt}{*2}{*1.5}
 
 %%% Document title %%%
 
@@ -114,7 +120,7 @@ It has the following representation:
 	\node[obs] (y) {$y$};%
 	\node[latent,left=of y] (z) {$z$}; %
 	\node[latent,left=of z] (beta) {$\beta$}; %
-	\node[obs,above=of z,yshift=-4mm] (x) {$x$};
+	\node[obs,above=of z,xshift=10mm,yshift=-6mm] (x) {$x$};
 	% plate
 	\plate [inner sep=.25cm,yshift=.2cm] {plate1} {(x)(y)(z)} {$n$}; %
 	% edges
@@ -137,7 +143,8 @@ Evidently,
 	p(y_i,z_i|\beta) = \mathds{1}_{\{y_iz_i > 0\}}
 \end{align*}
 By Bayes' theorem we have the posteriors
-\begin{align*}
+\begin{equation}
+\begin{aligned}
 	p(\beta|z) \propto p(\beta)p(z|\beta)
 	&\propto \exp\left(
 		-\frac1{2\tau}\|\beta\|^2
@@ -147,14 +154,15 @@ By Bayes' theorem we have the posteriors
 		-\frac1{2\tau}\|\beta\|^2
 		-\frac{1}{2}\|z - X\beta\|^2
 	\right)
-\end{align*}
+\end{aligned}
+\end{equation}
 and
-\begin{align*}
+\begin{equation}
 	p(z|\beta,y) \propto p(z|\beta)p(y,z|\beta)
-	&\propto \exp\left(
+	\propto \exp\left(
 	-\frac{1}{2}\|z - X\beta\|^2
 	\right) \prod_{i=1}^{n} \mathds{1}_{\{y_iz_i > 0\}}
-\end{align*}
+\end{equation}
 where $X = (x_1|\ldots|x_n)^T \in \RR^{n \times p}$ is the design matrix. By identification $\beta|z \sim \calN(\mu_p, \Sigma_p)$ where
 \begin{equation}\label{eq:BetaPostZ}
 \bluefont
@@ -162,7 +170,7 @@ where $X = (x_1|\ldots|x_n)^T \in \RR^{n \times p}$ is the design matrix. By ide
 	\quad
 	\mu_p = \Sigma_p X^Tz
 \end{equation}
-and $z|\beta,y \sim \mathrm{T}\calN(X\beta, I_n; \calP_y)$ where $\mathrm{T}\calN(\cdot; \calP_y)$ is the truncated Gaussian with support in the polytope $\calP_y = \{z\in\RR^n : z_i y_i > 0,\ i=1,\ldots,n\}$.
+and for all $i$, $\boxed{z_i|\beta,y_i \sim \mathrm{T}\calN(x_i^T\beta, 1; y_i)}$ where $\mathrm{T}\calN(\cdot; y_i)$ is the truncated Gaussian with support in the orthant $\{z\in\RR: y_iz_i > 0\}$.
 
 With all this in place, we use Gibbs sampling to sample from the posterior distribution of $\beta,z$ given the data $(X,y)$.
 For inference and testing, we \textbf{\boldmath split the dataset up as $2/3$rds for training and $1/3$rd for testing}. \Cref{fig:GibbsMarginals} shows approximate posterior marginals for $\beta,z | X,y$ in the form of histograms made from samples.
@@ -177,87 +185,156 @@ The testing accuracy (predicting using MAP) is of about $\approx 75\%$, using 40
 
 
 \paragraph{Question 4}
-We assume the factorization for the variational distribution $q$:
+
+This time, we want to use variational inference, by approximating the true prior $p(\beta,z|X,y)$ by a distribution $q(\beta,z)$.
+Assume the mean-field factorization for $q$:
 \begin{equation}
 	q(\beta, z) = q_1(\beta)q_2(z)
 \end{equation}
+We denote by $\EE^q$ the expectation operator under the distribution $q$. The optimal variational distribution satisfies
+\begin{subequations}
+\begin{align}
+	\log q^*_1(\beta) &= \EE_{z\sim q^*_2}[\log p(\beta,z,y)|\beta,y] + \mathrm{cst}  \\
+	\log q^*_2(z) &= \EE_{\beta\sim q^*_1}[\log p(\beta,z,y)|z,y] + \mathrm{cst}
+\end{align}
+\end{subequations}
 
-\textbf{Joint probability.} The log-joint probability is written as
+\subparagraph{Joint probability.} The log-joint probability of $(\beta,z,y)$ is written
 \begin{equation}
 \begin{aligned}
-	\ln p(\beta, z, y)
-	&= \ln p(y | z) + \ln p(z|\beta) + \ln p(\beta)  \\
-	&= \ln p(y|z) - \frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2 + \mathrm{cst}
+	\log p(\beta, z, y)
+	&= \log p(y | z) + \log p(z|\beta) + \log p(\beta)  \\
+	&= 
+	\log p(y|z)
+	-\frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2 + \mathrm{cst}
 \end{aligned}
 \end{equation}
 
-\textbf{Derivation of \boldmath$q_1$.} The optimal form of the factor is
+\subparagraph{Derivation of \boldmath$q_1$.} The optimal form of the factor is
 \begin{equation}
 \begin{aligned}
-	\ln q_1^*(\beta) &= \EE_{z}\left[
-		\ln p(y|z) - \frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2
-		\middle| \beta
+	\log q^*_1(\beta) &= \EE^{q}_{z}\left[
+		\log p(y|z) - \frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2
+		\middle| \beta,y
 	\right] + C_1  \\
-	&= \EE_z [\ln p(y|z) | \beta]
-	- \frac{1}{2} \underbrace{\EE_z\left[\|z-X\beta\|^2 \middle| \beta\right]}_{=\EE_{\epsilon\sim\calN(0,1)}[\|\epsilon\|^2] = 1}
+	&= \EE^q_z [\log p(y|z) | \beta,y]
+	- \frac{1}{2} \EE^q_z\left[\|z-X\beta\|^2 \middle| \beta,y\right]
 	- \frac{1}{2\tau}\|\beta\|^2
-	+ C_2
+	+ C_1  \\
+	&= -\frac{1}{2} \EE^q_z\left[\|z-X\beta\|^2 \middle| \beta,y\right]
+	- \frac{1}{2\tau}\|\beta\|^2
+	+ C_2  \\
+	&= -\frac{1}{2} \EE^q_z\left[\|z\|^2 - 2z^TX\beta + \|X\beta\|^2 \middle| \beta,y\right]
+	- \frac{1}{2\tau}\|\beta\|^2
+	+ C_2  \\
+	&=
+	\bar{z}^TX\beta
+	-\frac{1}{2}\beta^TX^TX\beta
+	-\frac{1}{2\tau}\|\beta\|^2
+	+ C_3  \\
+	&=
+	-\frac{1}{2}
+	(\beta - \bar{\beta})\Sigma_p^{-1}(\beta - \bar{\beta})
+	+ C_3  \\
 \end{aligned}
 \end{equation}
-Since
-\[
-	\ln p(y|z) = \sum_{i=1}^n \mathds{1}_{y_i=1}\ln(\mathds{1}_{z_i>0}) + \mathds{1}_{y_i=-1}\ln(\mathds{1}_{z_i\leq 0})
-\]
-the first term is
-\[
-	\EE_z[\ln p(y|z) | \beta] =
-\]
+where $\Sigma_p$ is defined as in \cref{eq:BetaPostZ}, and
+\begin{equation}\label{eq:VBayesParams}
+{\redfont
+	\bar{z} = \EE_{z\sim q^*_2}[z], \quad
+	\bar{\beta} = \Sigma_p X^T\bar{z}.
+}
+\end{equation}
+The terms $\EE^q_z[\log p(y|z)|\beta,y]$ and $\EE^q_z\left[\|z\|^2\right]$ do not depend on $\beta$ and are added to the constants.
+
 The end result is
 \begin{equation}
 \bluefont
-	\ln q^*_1(\beta) = -\frac{1}{2\tau}\|\beta\|^2 + C_3
+\boxed{
+	q^*_1(\beta) = \calN(\Sigma_pX^T {\redfont\bar{z}}, \Sigma_p).
+}
 \end{equation}
-so $\boxed{q^*_1 = \calN(0, \tau I_p).}$
 
 
-\textbf{Derivation of \boldmath$q_2$.} The optimal form of the factor is
+\subparagraph{Derivation of \boldmath$q_2$.} The optimal form of the factor is
 \begin{equation}
-	\ln q_2^*(z) = \EE_{\beta}\left[
-	\ln p(y|z) - \frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2
-	\middle| z
-	\right] + C_4
-\end{equation}
-It holds that
-\[
 \begin{aligned}
-	\EE_\beta \left[
-		\|\beta\|^2 + \|z-X\beta\|^2 \middle| z
-	\right]
+	\log q^*_2(z)
+	&= \EE_{\beta\sim q^*_1}\left[
+	\log p(y|z) - \frac{1}{2}\|z-X\beta\|^2 - \frac{1}{2\tau} \|\beta\|^2
+	\middle| z,y
+	\right] + C_1  \\
 	&=
-	\EE_\beta\left[
-	(\beta - \mu_p)\Sigma_p^{-1}(\beta - \mu_p) + C(z)
-	\middle| z
-	\right] \\
-	&= \underbrace{\EE_{u\sim \calN(\mu_p,\Sigma_p)}\left[
-	(u - \mu_p)^T \Sigma_p^{-1}(u - \mu_p)
-	\middle| z
-	\right]}_{=1} + C(z)
-\end{aligned}
-\]
-where $(\mu_p,\Sigma_p)$ come from \cref{eq:BetaPostZ}, and $C(z)$ is the difference between the terms under the expectations on the first line. Evaluating the expression with $\beta = 0$ leads to
-\[
-	C(z) = \|z\|^2 - \mu_p(z)^T \Sigma_p^{-1}\mu_p(z)
-	= \|z\|^2 - z^T X\Sigma_p X^T z =
-	z^T(I_p - X\Sigma_pX^T)z
-\]
-The expectation $\EE_y[\ln p(y|z) \mid z]$ is still $0$.
-This leads to
-\begin{equation}
-\begin{aligned}
-	\ln q_2^*(z) &=
-	-\frac{1}{2} z^T (I_p - X\Sigma_p X^T)z + C_5
+	\sum_{i=1}^n \left\{ 
+		\mathds{1}_{y_i=1}\ln(\mathds{1}_{z_i > 0}) + \mathds{1}_{y_i=-1}\ln(\mathds{1}_{z_i \leq 0})
+	\right\}
+	-\frac{1}{2}
+	\left(
+		\|z\|^2 - 2z^TX\bar{\beta}
+	\right)
+	+ C_2  \\
+	&=
+	\sum_{i=1}^n \left\{ 
+	\mathds{1}_{y_i=1}\ln(\mathds{1}_{z_i > 0}) + \mathds{1}_{y_i=-1}\ln(\mathds{1}_{z_i \leq 0})
+	\right\}
+	-\frac{1}{2}
+	\left\|z - X\bar{\beta}\right\|^2
+	+ C_3
 \end{aligned}
 \end{equation}
-i.e. $\boxed{q_2^* = \calN(0, I_p - X\Sigma_pX^T).}$
+where $\redfont\bar{\beta} = \EE_{\beta\sim q^*_1}[\beta]$.
+Indeed, the expectation under $q_1$ of $\log p(y|z)$ conditionally on $z,y$ is itself.
+This means that 
+\begin{equation}
+\bluefont
+\boxed{
+	q^*_2(z) = \mathrm{T}\calN(X {\redfont\bar{\beta}}, I_p; \calP_y).
+}
+\end{equation}
+
+
+
+
+\subparagraph{Summary and algorithm.} The optimal mean-field distribution $q(\beta,z) = q_1(\beta)q_2(z)$ satisfies the fixed-point condition
+\begin{subequations}\label{eq:VBfixedPoint}
+\begin{align}
+	q_1^*(\beta) &= \calN(\Sigma_pX^T\bar{z}, \Sigma_p)  \\
+	q_2^*(z) &= \mathrm{T}\calN(X\bar{\beta}, I_p; \calP_y)  \\
+	\bar{\beta} &= \EE_{\beta \sim q^*_1}[\beta] = \Sigma_p X^T\bar{z}  \\
+	\bar{z} &= \EE_{z \sim q^*_2}[z]
+\end{align}
+\end{subequations}
+We can explicitly compute
+\[
+	\bar{z}_i = x_i^T\bar{\beta} + y_i\frac{\phi(x_i^T\bar\beta)}{\Phi(y_i x_i^T\bar\beta)}.
+\]
+The coordinate ascent variational approximation algorithm now reduces to alternatively updating the means until convergence.
+
+
+\begin{figure}
+	\centering
+	\includegraphics[width=\linewidth]{images/VI_mean_convergence.png}
+	\caption{$L_1$-loss between consecutive iterations of the VI algorithm.}\label{fig:VI_L1_convergence}
+\end{figure}
+
+\subparagraph{Performance.} Inference with Gibbs sampling $M=5000$ samples (and a burn-in of 100) takes $\approx 10.4$ seconds. Variational approximation converges in 200 iterations (see \cref{fig:VI_L1_convergence}) in $\approx 0.22$ seconds, and sampling $M=5000$ times took $\approx 0.26$ seconds. \Cref{fig:VBGibbsPosteriorComparison} shows a comparison of the posterior marginals obtained with the two approaches: we can observe that the VI algorithm often returns lower posterior variance on $\beta$ than Gibbs. For prediction, we obtain similar MAP prediction accuracy on the test set -- around $75\%$.
+
+\begin{figure}[h]
+	\includegraphics[width=\linewidth]{images/posterior_VI_Gibbs_comparison_1.png}
+	\caption{Comparison of the posterior marginals between Variational Bayes and Gibbs sampling. Histograms built with $M=5000$ samples.}\label{fig:VBGibbsPosteriorComparison}
+\end{figure}
+
+\paragraph{Question 5}
+
+
+\paragraph{Question 6}
+
+
+
+
+
+
+
+
 
 \end{document}
