@@ -32,6 +32,7 @@
 \newcommand\TT{\mathbb{T}}
 \newcommand\PP{\mathbb{P}}
 \newcommand\EE{\mathbb{E}}
+\newcommand\VV{\mathbb{V}}
 \DeclarePairedDelimiter{\intinterv}{\llbracket}{\rrbracket}
 
 \renewcommand{\epsilon}{\varepsilon}
@@ -325,7 +326,14 @@ The coordinate ascent variational approximation algorithm now reduces to alterna
 	\caption{Comparison of the posterior marginals between Variational Bayes and Gibbs sampling. Histograms built with $M=5000$ samples.}\label{fig:VBGibbsPosteriorComparison}
 \end{figure}
 
-\paragraph{Question 5}
+\paragraph{Question 5} We know that the (true) posterior variance of $\beta$ given $X$ is by the law of total variance
+\[
+	\VV(\beta) = \EE[\VV(\beta|z)] + \VV(\EE[\beta|z]) = \Sigma_p + \VV(\Sigma_pX^Tz) = \Sigma_p + \Sigma_pX\VV(z)X^T\Sigma_p \succeq \Sigma_p
+\]
+while under $q^*_1$, $\beta$ exactly has variance $\Sigma_p$. So we know that asymptotically VB under-estimates the true posterior variance. It also has lesser variance than the Gibbs iterates $\beta^{(t)}$ by using the same of argument total variance:
+\[
+	\VV(\beta^{(t)}) = \Sigma_p + \VV(\Sigma_p X^Tz^{(t-1)})
+\]
 
 
 \paragraph{Question 6}
